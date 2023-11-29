@@ -1,0 +1,247 @@
+# Task: Write a MIPS subroutine to convert a 32-bit unsigned number into a sequence of ASCII characters. Each of these ASCII characters are printed to stdout in turn.
+# The ASCII string created on stdout will be the corresponding (unsigned) decimal number, written in reverse.
+# The subroutine returns the number of characters printed.
+# Name: percent_base_10
+# File: conversion.s
+# Declaration: int percent_base_10( int value)
+# Semantics:
+# - iteratively divides the input value by 10.
+# - converts the remainder to ASCII
+# - print outs the ASCII character to the stdout
+# - returns the number of ASCII characters printed
+# Edge Condition:
+# - value = 0;
+# Question:
+# - Should you use a while, for, or do-while loop?
+#
+
+#this is starter code:
+# Name: percent_base_10
+# File: conversion.s
+# Declaration: int percent_base_10( int value)
+# Semantics:
+# - iteratively divides the input value by 10.
+# - converts the remainder to ASCII
+# - print outs the ASCII character to the stdout
+# - returns the number of ASCII characters printed
+# Edge Condition:
+# - value = 0;
+
+# Starter Code:
+.text
+    .globl main
+        #.include "include/syscall_macros.s"
+        #.include "include/isqrt.s"
+    
+
+        .data
+            # Insert any global varaibles here
+            buffer:         .space 16
+            stack:          .space 16
+            print_1:        .asciiz "Enter base: "
+            print_2:        .asciiz "Converting '1234' to base "
+            print_3:        .asciiz "Count: "
+                
+            
+        .text
+
+        # define any macros here
+        # E.g., here is the definition of the "inc" macro
+        # Usage:  inc($t0)
+
+        .macro inc(%reg)
+            addi %reg, %reg, 1      # increment the value of in register "%reg"
+        .end_macro
+
+        .macro print_1
+            li $v0, 4
+            la $a0, print_1
+            syscall
+        .end_macro
+
+        .macro print_2
+            li $v0, 4
+            la $a0, print_2
+            syscall
+
+            li $v0, 1
+            move $a0, $t0
+            syscall
+        .end_macro
+
+        .macro print_result
+            li $v0, 4                # print String
+            move $a0, $s0            # load value of a into a0
+            syscall
+        .end_macro
+
+        .macro print_count
+            li $v0, 4
+            la $a0, print_3
+            syscall
+
+            move $a0, $t1            # print_int(count)
+            li $v0, 1                # Call Code : 1 = print Integer 
+            syscall
+        .end_macro
+
+        .macro print_newline
+            li $a0, '\n'             # print_char('\n')
+            li $v0, 11               # Call Code : 11 = print character 
+            syscall
+        .end_macro
+
+        .macro exit()
+            li $a0, 0           
+            li $v0, 17
+            syscall
+        .end_macro
+
+
+
+
+    main:
+        # t0: 10
+        # $t1: mflo
+        # $t2: mfhi
+        # $t3:
+        # $t4: 20
+        #
+        # $a0: 
+        # $a1: value and mflo
+        #
+        # $v0: count
+        # $v1: temp count
+        #
+        # $k1: stack position
+        # $s0: buffer address
+
+
+        # load divisor 
+        print_1         # ask user to enter base
+        li $v0, 5       # read integer "a"
+        syscall
+        move $t0, $v0                
+        print_newline
+        print_2
+        print_newline
+
+
+        # memory allocation for stack
+        if1:
+            ble $t0, 2, base2
+            ble $t0, 3, base3
+            ble $t0, 8, base8
+            ble $t0, 10, base10
+            b base16
+
+            base2:
+                li $t4, 48
+                b if_done1
+            base3:
+                li $t4, 32
+                b if_done1
+            base8:
+                li $t4, 20
+                b if_done1
+            base10:
+                li $t4, 20
+                b if_done1
+            base16:
+                li $t4, 16
+        if_done1:
+
+
+        la $s0, buffer           # buffer
+
+        li $a0, 16               # memory is allocated from the heap segment
+        li $v0, 9
+        syscall
+        move $s0, $v0
+
+        # $t1: count
+        li $a0, 1234                # count = percent_unsigned_base(1234)
+        jal percent_unsigned_base   # go to subroutine percent_unsigned_base
+        move $t1, $v0               # move count to $t1 register
+
+        print_result
+
+        print_newline
+
+        print_count
+
+        exit()                   # exit(0)
+
+
+
+
+
+    percent_unsigned_base:
+        # $v1: count
+        # $a1: value
+        #
+
+        loop_sec:
+            loop_init:
+                sub $t5, $t4, 4        # subtract four from stack size(doesn't work w/o)
+                move $a1, $a0          # copy $a0 = value
+                move $k1, $t5          # set k register to 12 (stack size)
+                b loop_test
+
+            loop_test:
+                ble $k1, $0, done       # if(value == 0) then done, else divide by 10
+                b loop_body
+            
+            loop_body:
+                    
+                divu $a1, $t0           # lo = rs / rt; hi = rs % rt 
+                mflo $t1                # division result
+                mfhi $t2                # remainder 
+
+                if2:
+                    blt $t2, 10, less_10            #if (digit <= 9) --> less_10
+                    bge $t2, 10, greater_equal_10   #if (digit > 9 ) --> greater_equal_10
+
+                    less_10:
+                        addi $t2, $t2, 0x30         # ascii_digit = digit + '0'
+                        b if_done2
+                    
+                    greater_equal_10:
+                        sub $t2, $t2, 10
+                        add $t2, $t2, 0x41          # ascii_digit = digit - 10 + 'A' 
+                if_done2:
+
+                sw $t2, stack($k1)              # store remainder in stack(pos: $k1) 
+                subi $k1, $k1, 4                # stack(16) -> stack(12) -> ..... -> stack(4)
+
+                b loop_next
+
+            loop_next:
+                move $a1, $t1               # move from Lo to register $a1 for division in next loop
+                addi $v1, $v1, 1            # increment count by 1 
+                b loop_test
+                
+        done:
+                move $v0, $v1                       # move count
+
+                while:
+                    while_init:
+                        addi $k1, $k1, 4            # stack(0) -> stack(4)
+                        b while_test
+
+                    while_test:
+                        bge $k1, $t4, end_while     # exit while loop if stack limit is reached
+                        b while_body
+
+                    while_body:
+                        lw $t2, stack($k1)          # pop stack and load into $t2
+                        addi $k1, $k1, 4            # stack(0) -> stack(4) -> .... -> stack(16)
+                        
+                        sb $t2, ($s0)               # store remainders in buffer 
+                        addi $s0, $s0, 1            # increment index
+
+                        b while_test
+
+                end_while: nop
+                sub $s0, $s0, $v0                   #subtract index by count
+                jr $ra

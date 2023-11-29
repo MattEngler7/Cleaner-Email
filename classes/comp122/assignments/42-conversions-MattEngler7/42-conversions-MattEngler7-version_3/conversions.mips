@@ -1,0 +1,141 @@
+.text
+    .globl main
+        #.include "include/syscall_macros.s"
+        #.include "include/isqrt.s"
+    
+
+        .data
+            # Insert any global varaibles here
+            buffer: .space 16
+            stack:  .space 16
+                
+            
+        .text
+
+        # define any macros here
+        # E.g., here is the definition of the "inc" macro
+        # Usage:  inc($t0)
+
+        .macro inc(%reg)
+            addi %reg, %reg, 1      # increment the value of in register "%reg"
+        .end_macro
+
+        .macro print_string
+            li $v0, 4                # print integer
+            move $a0, $s0            # load value of a into a0
+            syscall
+        .end_macro
+
+        .macro exit()
+            li $a0, 0           
+            li $v0, 17
+            syscall
+        .end_macro
+
+
+
+
+    main:
+        # t0: 10
+        # $t1: mflo
+        # $t2: mfhi
+        # $t3:
+        # $t4: 20
+        #
+        # $a0: 
+        # $a1: value and mflo
+        #
+        # $v0: count
+        # $v1: temp count
+        #
+        # $k1: stack position
+        # $s0: buffer address
+
+
+        li $t0, 10               # divisor 
+        li $t4, 20               # for popping stack
+
+        la $s0, buffer           # buffer
+
+        li $a0, 16               # memory is allocated from the heap segment
+        li $v0, 9
+        syscall
+        move $s0, $v0
+
+        # $t1: count
+        li $a0, 1234             # count = percent_base_10(1234)
+        jal percent_base_10      # go to subroutine percent_base_10
+        move $t1, $v0            # move count to $t1 register
+
+        print_string
+
+        li $a0, '\n'             # print_char('\n')
+        li $v0, 11               # Call Code : 11 = print character 
+        syscall
+
+        move $a0, $t1            # print_int(count)
+        li $v0, 1                # Call Code : 1 = print Integer 
+        syscall
+
+        exit()                   # exit(0)
+
+
+
+
+
+    percent_base_10:
+        # $v1: count
+        # $a1: value
+        #
+
+        loop_sec:
+            loop_init:
+                move $a1, $a0       # copy $a0 = value
+                li $k1, 16          # set k register to 12 (stack size)
+                b loop_test
+
+            loop_test:
+                ble $k1, $0, done   # if(value == 0) then done, else divide by 10
+                b loop_body
+            
+            loop_body:
+                    
+                divu $a1, $t0       # lo = rs / rt; hi = rs % rt 
+                mflo $t1            # division result
+                mfhi $t2            # remainder 
+
+                sw $t2, stack($k1)  # store remainder in stack(pos: $k1) 
+                subi $k1, $k1, 4    # stack(16) -> stack(12) -> ..... -> stack(4)
+
+                b loop_next
+
+            loop_next:
+                move $a1, $t1       # move from Lo to register $a1 for division in next loop
+                addi $v1, $v1, 1    # increment count by 1 
+                b loop_test
+                
+        done:
+                move $v0, $v1       # move count
+
+                while:
+                    while_init:
+                        addi $k1, $k1, 4            # stack(0) -> stack(4)
+                        b while_test
+
+                    while_test:
+                        bge $k1, $t4, end_while     # exit while loop if stack limit is reached
+                        b while_body
+
+                    while_body:
+                        lw $t2, stack($k1)          # pop stack and load into $t2
+                        addi $k1, $k1, 4            # stack(0) -> stack(4) -> .... -> stack(16)
+                        
+                        addi $t2, $t2, 48           # add zero to $t2(Won't print w/o)
+                        sb $t2, ($s0)               # store remainders in buffer 
+                        addi $s0, $s0, 1            # increment index
+
+                        b while_test
+
+                end_while: nop
+                sub $s0, $s0, $v0                   #subtract index by count
+                jr $ra

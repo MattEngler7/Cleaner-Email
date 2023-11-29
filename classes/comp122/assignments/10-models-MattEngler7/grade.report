@@ -1,0 +1,13 @@
+# Grading summary for "10-models" assignment
+
+  5 Points:		Name (5 points): 
+  13 Points:		Finite State Machine (15 points): labels for the status
+  8 Points:		ISA (15 points): very unclear
+  10 Points:		Sequential/Combinational (10 points): 
+  7 Points:		Terms (10 points): rval?
+  4 Points:		Universal Computer (10 points): off the mark
+  2 Points:		IP Header (10 points): a cut and paste from this page: https://en.wikipedia.org/wiki/IPv4_header_checksum
+  2 Points:		Endianess (10 points): a cugt and paste from this page: https://www.chegg.com/homework-help/questions-and-answers/1-memory-modeled-array-bytes-register-mips-architecture-contains-32-bits-role-endiance-pla-q92354644
+  15 Points:		Memory (15 points): 
+---
+66 Points:		Total

@@ -1,0 +1,29 @@
+Script started on Thu 24 Feb 2022 11:56:22 AM PST
+]0;mse59331@ssh: ~mse59331@ssh:~$ java checksum < 156.txt
+Stored Checksum: 156, Computed Checksum: 156
+]0;mse59331@ssh: ~mse59331@ssh:~$ pushd ~steve/comp122/checksum
+/home/users0/ccs/steve/comp122/checksum ~
+]0;mse59331@ssh: /home/users0/ccs/steve/comp122/checksummse59331@ssh:/home/users0/ccs/steve/comp122/checksum$ time java checksum < 156.txt
+Stored Checksum: 156, Computed Checksum: 156
+
+real	0m0.137s
+user	0m0.108s
+sys	0m0.020s
+]0;mse59331@ssh: /home/users0/ccs/steve/comp122/checksummse59331@ssh:/home/users0/ccs/steve/comp122/checksum$ time ./checksum < 156.txt
+Stored Checksum: 156, Computed Checksum: 156
+
+real	0m0.001s
+user	0m0.000s
+sys	0m0.000s
+]0;mse59331@ssh: /home/users0/ccs/steve/comp122/checksummse59331@ssh:/home/users0/ccs/steve/comp122/checksum$ popd
+~
+]0;mse59331@ssh: ~mse59331@ssh:~$ time java checksum < 156.txt
+Stored Checksum: 156, Computed Checksum: 156
+
+real	0m0.133s
+user	0m0.108s
+sys	0m0.020s
+]0;mse59331@ssh: ~mse59331@ssh:~$ exit
+exit
+
+Script done on Thu 24 Feb 2022 11:57:03 AM PST
